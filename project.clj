@@ -8,10 +8,8 @@
 
   :dependencies [[org.clojure/clojure "1.7.0"]
                  [org.clojure/clojurescript "1.7.228"]
-                 [cljsjs/react "0.13.3-1"]
                  [cljsjs/nodejs-externs "1.0.4-1"]
-                 [cljsjs/three "0.0.72-0"]
-                 [reagent "0.5.1"]]
+                 [cljsjs/three "0.0.72-0"]]
 
   :plugins [[lein-cljsbuild "1.1.2"]]
 

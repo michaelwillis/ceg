@@ -30,7 +30,6 @@
 
 (defn init!
   []
-  (js/alert "boo")
   (aset (aget cam "position") "z" 1000)
   (.add scene mesh)
   (.setSize renderer (aget js/window "innerWidth") (aget js/window "innerHeight"))

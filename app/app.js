@@ -8,7 +8,6 @@ var ipc = electron.ipcMain;
 var app = electron.app;
 var dialog = electron.dialog;
 var BrowserWindow = electron.BrowserWindow;
-var Menu = electron.Menu;
 
 // Report crashes to atom-shell.
 require('crash-reporter').start();
@@ -34,56 +33,6 @@ var mainWindow = null;
 // make sure app.getDataPath() exists
 // https://github.com/oakmac/cuttle/issues/92
 fs.ensureDirSync(app.getPath('userData'));
-
-
-//------------------------------------------------------------------------------
-// Main
-//------------------------------------------------------------------------------
-
-const versionString = "Version   " + packageJson.version + "\nDate       " + packageJson["build-date"] + "\nCommit  " + packageJson["build-commit"];
-
-
-function showVersion() {
-  dialog.showMessageBox({type: "info", title: "Version", buttons: ["OK"], message: versionString});
-}
-
-var fileMenu = {
-  label: 'File',
-  submenu: [
-  {
-    label: 'Quit',
-    accelerator: acceleratorKey + '+Q',
-    click: function ()
-    {
-      app.quit();
-    }
-  }]
-};
-
-var helpMenu = {
-  label: 'Help',
-  submenu: [
-  {
-    label: 'Version',
-    click: showVersion
-  }]
-};
-
-var debugMenu = {
-  label: 'Debug',
-  submenu: [
-  {
-    label: 'Toggle DevTools',
-    click: function ()
-    {
-      mainWindow.toggleDevTools();
-    }
-  }
-  ]
-};
-
-var menuTemplate = [fileMenu, debugMenu, helpMenu];
-
 
 // NOTE: not all of the browserWindow options listed on the docs page work
 // on all operating systems
@@ -114,9 +63,7 @@ app.on('ready', function() {
   // and load the index.html of the app.
   mainWindow.loadURL('file://' + __dirname + '/index.html');
 
-  var menu = Menu.buildFromTemplate(menuTemplate);
-
-  Menu.setApplicationMenu(menu);
+  mainWindow.setMenu(null);
 
   // Emitted when the window is closed.
   mainWindow.on('closed', function() {
