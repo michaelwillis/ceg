@@ -17,6 +17,9 @@
 
 (defonce sector-mesh (atom nil))
 
+(defn v2 [x y]
+  (new THREE.Vector2 x y))
+
 (defn create-sector-geo 
   "
   FIXME:  Won't work for sectors with more than one block!
@@ -58,13 +61,15 @@
 
                           ;; bottom
                           [0 1 4]
-                          [4 1 5]
-                          ]
-
-
-              ] 
+                          [4 1 5]]] 
         (-> geo (aget "faces") (.push (new THREE.Face3 v1 v2 v3)))))
     
+    (aset geo "faceVertexUvs" 
+          (clj->js [(->> (repeat [[(v2 0 1) (v2 1 1) (v2 0 0)]
+                                  [(v2 0 0) (v2 1 1) (v2 1 0)]])
+                         (take 6)
+                         (mapcat identity))]))
+
     (.computeFaceNormals geo)
 
     geo))
@@ -94,7 +99,7 @@
           sm-rot-y (aget sm-rot "y")]
       (aset sm-rot "x" (+ sm-rot-x 0.02))
       (aset sm-rot "y" (+ sm-rot-y 0.01))
-      ;; (aset cam-rot "y" (+ cam-y-rot 0.01))
+    ;;  (aset cam-rot "y" (+ cam-y-rot 0.01))
       ))
     (.render renderer scene cam)
 )
