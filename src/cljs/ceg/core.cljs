@@ -20,6 +20,15 @@
 (defn v2 [x y]
   (new THREE.Vector2 x y))
 
+(defn create-sector []
+  {:blocks {}})
+
+(defn fill [sector [x1 y1 z1] [x2 y2 z2] block]
+  (let [coords (for [x (range x1 x2) y (range y1 y2) z (range z1 z2)] [x y z])]
+    (->> coords
+         (reduce #(assoc %1 %2 block) {})
+         (update sector :blocks merge))))
+
 (defn create-sector-geo 
   "
   FIXME:  Won't work for sectors with more than one block!
@@ -28,7 +37,10 @@
   "
   [sector]
   (let [geo (new THREE.Geometry)]
-    (doseq [[[x y z] block] (:blocks sector)]
+
+    (dorun
+     (->> sector :blocks (map-indexed (fn [i [[x y z] block]]
+
       (doseq [[vx vy vz] [[     x       y       z]
                           [(inc x)      y       z]
                           [     x  (inc y)      z]
@@ -39,36 +51,42 @@
                           [(inc x) (inc y) (inc z)]]]
         (-> geo (aget "vertices") (.push (new THREE.Vector4 vx vy vz))))
 
-      (doseq [[v1 v2 v3] [;; north    ;;  2  3
-                          [0 2 1]     ;;
-                          [1 2 3]     ;;  0  1
-                          
-                          ;; south    ;;  6  7
-                          [4 5 6]     ;;
-                          [5 7 6]     ;;  4  5
+      (let [vertex-offset (* 8 i)]
+        (doseq [[v1 v2 v3] [;; north    ;;  2  3
+                            [0 2 1]     ;;
+                            [1 2 3]     ;;  0  1
 
-                          ;; east 
-                          [5 1 7]
-                          [7 1 3]
+                            ;; south    ;;  6  7
+                            [4 5 6]     ;;
+                            [5 7 6]     ;;  4  5
 
-                          ;; west 
-                          [0 4 2]
-                          [2 4 6]
+                            ;; east
+                            [5 1 7]
+                            [7 1 3]
 
-                          ;; top 
-                          [6 7 2]
-                          [2 7 3]
+                            ;; west
+                            [0 4 2]
+                            [2 4 6]
 
-                          ;; bottom
-                          [0 1 4]
-                          [4 1 5]]] 
-        (-> geo (aget "faces") (.push (new THREE.Face3 v1 v2 v3)))))
-    
-    (aset geo "faceVertexUvs" 
-          (clj->js [(->> (repeat [[(v2 0 1) (v2 1 1) (v2 0 0)]
-                                  [(v2 0 0) (v2 1 1) (v2 1 0)]])
-                         (take 6)
-                         (mapcat identity))]))
+                            ;; top
+                            [6 7 2]
+                            [2 7 3]
+
+                            ;; bottom
+                            [0 1 4]
+                            [4 1 5]]]
+          (-> geo (aget "faces") (.push (new THREE.Face3
+                                             (+ v1 vertex-offset)
+                                             (+ v2 vertex-offset)
+                                             (+ v3 vertex-offset))))))
+
+      (aset geo "faceVertexUvs"
+            (clj->js [(->> (repeat [[(v2 0 1) (v2 1 1) (v2 0 0)]
+                                    [(v2 0 0) (v2 1 1) (v2 1 0)]])
+                           (take (* 6 (count (:blocks sector))))
+                           (mapcat identity))]))
+      ))))
+
 
     (.computeFaceNormals geo)
 
@@ -121,7 +139,9 @@
   []
   (aset (aget cam "position") "z" 10)
 
-  (update-scene scene {:blocks {[2 0 0] :stone}})
+  (->>
+   (fill (create-sector) [0 0 0] [10 10 1] :stone)
+   (update-scene scene))
 
   (resize)
 
